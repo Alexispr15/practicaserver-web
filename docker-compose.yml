@@ -1,0 +1,55 @@
+version: "2.2"
+services:
+  asir_bind9:
+    image: internetsystemsconsortium/bind9:9.16
+    ports:
+      - 53:53
+    volumes:
+      - dns_conf:/etc/bind
+    networks:
+      red01:
+        ipv4_address: 10.1.0.254
+  asir_cliente:
+    image: kasmweb/desktop:1.10.0-rolling
+    ports:
+      - 6901:6901
+    environment:
+      VNC_PW: password
+    networks:
+      - red01
+    dns:
+      - 10.1.0.254
+    stdin_open: true  # docker run -i
+    tty: true         # docker run -t
+  asir_webb:
+    image: httpd:latest
+    ports:
+      - 80:80
+    networks:
+      red01:
+        ipv4_address: 10.1.0.15
+    volumes:
+      - apache_index:/usr/local/apache2/htdocs
+      - apache_conf:/usr/local/apache2/conf
+  asir_wireshark:
+    image: linuxserver/wireshark
+    cap_add:
+      - NET_ADMIN
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+    ports:
+      - 3000:3000
+
+networks:
+ red01:
+  external: true
+volumes:
+  dns_conf:
+    external: true
+  apache_conf:
+    external: true
+  apache_index:
+    external: true
